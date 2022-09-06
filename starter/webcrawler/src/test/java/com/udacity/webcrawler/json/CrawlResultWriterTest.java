@@ -24,6 +24,7 @@ public final class CrawlResultWriterTest {
             .setWordCounts(counts)
             .build();
 
+
     CrawlResultWriter resultWriter = new CrawlResultWriter(result);
     CloseableStringWriter stringWriter = new CloseableStringWriter();
     resultWriter.write(stringWriter);
