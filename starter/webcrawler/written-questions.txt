@@ -11,6 +11,7 @@ Q1. Run the web crawler using the configurations located at src/main/config/writ
 
     Why did the parser take more time when run with ParallelWebCrawler?
 
+    The profiler measures the total time spent parsing web pages, and the ParallelWebCrawler parsed more web pages than the Sequential WebCrawler.
 
 Q2. Your manager ran your crawler on her old personal computer, using the configurations from Q1, and she notices that
     the sequential crawler actually outperforms the parallel crawler. She would like to know why.
@@ -18,16 +19,23 @@ Q2. Your manager ran your crawler on her old personal computer, using the config
     (a) Suggest one reason why the sequential web crawler was able to read more web pages than the parallel crawler.
         (Hint: Try setting "parallelism" to 1 in the JSON configs to simulate your manager's computer.)
 
+        Maybe her computer had only one processor so the parallel crawler is less efficient with the synchronized data structures.
+
     (b) Suggest one scenario in which the parallel web crawler will almost certainly perform better than the sequential
         crawler. Why will it perform better?
+
+        On a computer with multiple CPU cores. Since it's able to multithread and do concurrent work, it will parse more web pages in the same amount of time.
 
 
 Q3. Analyze your method profiler through the lens of Aspect Oriented Programming, by answering the following questions:
 
     (a) What cross-cutting concern is being addressed by the com.udacity.webcrawler.profiler.Profiler class?
 
+    The profiler class gives you performance metrics about the amount of time it took the app to run. The advantage of this is that it encapsulates that data into its own class rather than having the code 'cutting across' (dispersed throughout) your entire code base.
+
     (b) What are the join points of the Profiler in the web crawler program?
 
+    Method invocations. The profiling code was attached to intercepted method calls, or invocations, such as the parse() method that parsed web pages.
 
 Q4. Identify three (3) different design patterns used in this project, and explain which interfaces, classes, and/or
     libraries use or implement those design patterns.
@@ -36,3 +44,12 @@ Q4. Identify three (3) different design patterns used in this project, and expla
     anything, you can name two things you disliked.
 
 
+    1) Builder Pattern, implemented in CrawlerConfiguration.Builder, CrawlResult.Builder and JsonObjectBuilder.
+    I like that it allows you to chain methods together, makes it easy to create immutable classes with a large set of state attributes, and can eliminate the need for multiple constructors.
+    I didn't like that sometimes feels verbose and requires duplication of code/copying all fields from original class.
+
+    2) Factory Pattern, implemented with PageParserFactory.
+    I like that it allows you to create an object without exposing the logic to the client. The only thing I dislike is that it adds a lot of classes to the project.
+
+    3) Delegation Pattern - used when profiling library delegates to the method being profiled.
+    I like that it reduces coupling of methods to their class. I didn't like that it can be difficult to understand for someone used to OOP.
