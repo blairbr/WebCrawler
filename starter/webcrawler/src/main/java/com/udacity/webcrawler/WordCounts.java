@@ -43,7 +43,7 @@ final class WordCounts {
             .sorted(new WordCountComparator())
             .limit(Math.min(popularWordCount, wordCounts.size()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                    (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+                    (previousValue, currentValue) -> previousValue, LinkedHashMap::new));
     return topCounts;
   }
 

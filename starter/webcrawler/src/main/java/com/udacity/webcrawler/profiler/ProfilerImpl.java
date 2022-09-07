@@ -20,6 +20,7 @@ import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
  */
 final class ProfilerImpl implements Profiler {
 
+  public static final Class<Profiled> PROFILED_CLASS = Profiled.class;
   private final Clock clock;
   private final ProfilingState state = new ProfilingState();
   private final ZonedDateTime startTime;
@@ -58,19 +59,20 @@ final class ProfilerImpl implements Profiler {
     Writer writer = null;
     try {
       writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-    } catch (IOException e) {
-      throw new IOException(e.getMessage());
+    }
+    catch (IOException exception) {
+      throw new IOException(exception.getMessage());
     }
     finally {
-      if(writer != null)
-      {
-        try{writer.close();
-        }
-        catch(IOException ioException){
-          throw new IOException(ioException.getMessage());
+        if(writer != null)
+        {
+          try{writer.close();
+          }
+          catch(IOException exception){
+            throw new IOException(exception.getMessage());
+          }
         }
       }
-    }
     }
 
   @Override
@@ -83,9 +85,9 @@ final class ProfilerImpl implements Profiler {
 
   private <T> boolean classContainsMethodWithProfiledAnnotation(Class<T> klass) {
     boolean methodHasProfiledAnnotation = false;
-    Method[] methods = klass.getDeclaredMethods();
+    var methods = klass.getDeclaredMethods();
     for (Method method : methods) {
-      if(method.isAnnotationPresent(Profiled.class)) {
+      if(method.isAnnotationPresent(PROFILED_CLASS)) {
         methodHasProfiledAnnotation = true;
         break;
       }

@@ -5,17 +5,14 @@ import com.udacity.webcrawler.parser.PageParser;
 import com.udacity.webcrawler.parser.PageParserFactory;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * A concrete implementation of {@link WebCrawler} that runs multiple threads on a
@@ -62,6 +59,7 @@ final class ParallelWebCrawler implements WebCrawler {
     private List<Pattern> ignoredUrls;
     private Map<String, Integer> wordCounts;
     private Set<String> visitedUrls;
+
     public SearchAction(String url, Clock clock, Instant deadline, int maxDepth, PageParserFactory parserFactory, List<Pattern> ignoredUrls, Map<String, Integer> wordCounts, Set<String> visitedUrls)
     {
       this.url = url;
@@ -75,16 +73,16 @@ final class ParallelWebCrawler implements WebCrawler {
     }
     @Override
     protected void compute() {
-      if (maxDepth > 0 && clock.instant().isBefore(deadline)) {
-        List<String> sublinks = processingAndGetSubUrls(url);
-        List<SearchAction> searchActionList = createSubTasks(sublinks);
+      if (clock.instant().isBefore(deadline) && maxDepth > 0) {
+        List<String> sublinks = getSublinks(url);
+        List<SearchAction> searchActionList = createSearchActionList(sublinks);
         ForkJoinTask.invokeAll(searchActionList);
       }
     }
 
-    private List<String> processingAndGetSubUrls(String urlLink) {
+    private List<String> getSublinks(String urlLink) {
       List<String> sublinks = new ArrayList<>();
-      if (maxDepth == 0 || clock.instant().isAfter(deadline)) {
+      if (clock.instant().isAfter(deadline) || maxDepth == 0) {
         return sublinks;
       }
       for (Pattern pattern : ignoredUrls) {
@@ -110,7 +108,7 @@ final class ParallelWebCrawler implements WebCrawler {
       return sublinks;
     }
 
-    private List<SearchAction> createSubTasks(List<String> sublinks) {
+    private List<SearchAction> createSearchActionList(List<String> sublinks) {
       List<SearchAction> searchActionList = new ArrayList<>();
       for (String suburl : sublinks) {
         SearchAction searchAction = new SearchAction(
@@ -126,13 +124,24 @@ final class ParallelWebCrawler implements WebCrawler {
     Instant deadline = clock.instant().plus(timeout);
     Map<String, Integer> wordCounts = Collections.synchronizedMap(new HashMap<>());
     Set<String> visitedUrls = Collections.synchronizedSet(new HashSet<>());
+    invokeSearchAction(startingUrls, deadline, wordCounts, visitedUrls);
+    return getCrawlResult(wordCounts, visitedUrls);
+  }
+
+  @Override
+  public int getMaxParallelism() {
+    return Runtime.getRuntime().availableProcessors();
+  }
+
+  private void invokeSearchAction(List<String> startingUrls, Instant deadline, Map<String, Integer> wordCounts, Set<String> visitedUrls) {
     for (String url : startingUrls) {
       SearchAction searchAction = new SearchAction(
               url, clock, deadline, maxDepth, parserFactory, ignoredUrls, wordCounts, visitedUrls
       );
       pool.invoke(searchAction);
     }
-
+  }
+  private CrawlResult getCrawlResult(Map<String, Integer> wordCounts, Set<String> visitedUrls) {
     if(wordCounts.isEmpty()) {
       return new CrawlResult.Builder()
               .setWordCounts(wordCounts)
@@ -145,10 +154,5 @@ final class ParallelWebCrawler implements WebCrawler {
               .setUrlsVisited(visitedUrls.size())
               .build();
     }
-  }
-
-  @Override
-  public int getMaxParallelism() {
-    return Runtime.getRuntime().availableProcessors();
   }
 }

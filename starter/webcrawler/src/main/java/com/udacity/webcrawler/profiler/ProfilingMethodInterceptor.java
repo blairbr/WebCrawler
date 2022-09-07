@@ -32,7 +32,7 @@ final class ProfilingMethodInterceptor implements InvocationHandler {
     //       methods, the interceptor should record how long the method call took, using the
     //       ProfilingState methods.
 
-    Object result = null;
+    Object result;
     Instant start = null;
 
     boolean isMethodAnnotatedWithProfiledAnnotation = method.isAnnotationPresent(Profiled.class);
@@ -42,9 +42,11 @@ final class ProfilingMethodInterceptor implements InvocationHandler {
 
     try {
       result = method.invoke(targetObject, args);
-    } catch (IllegalAccessException exception) {
+    }
+    catch (IllegalAccessException exception) {
       throw exception.getCause();
-    } catch (InvocationTargetException exception) {
+    }
+    catch (InvocationTargetException exception) {
       throw exception.getTargetException();
     }
     finally {
