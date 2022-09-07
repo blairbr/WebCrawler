@@ -3,7 +3,12 @@ package com.udacity.webcrawler.profiler;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -33,14 +38,40 @@ final class ProfilerImpl implements Profiler {
     //       ProfilingMethodInterceptor and return a dynamic proxy from this method.
     //       See https://docs.oracle.com/javase/10/docs/api/java/lang/reflect/Proxy.html.
 
-    return delegate;
+    if(!classContainsMethodWithProfiledAnnotation(klass)) {
+      throw new IllegalArgumentException((klass.getName() + " does not contain any methods annotated with Profiled Annotation"));
+    }
+
+    T proxyInstance = (T) Proxy.newProxyInstance(
+           ProfilerImpl.class.getClassLoader(),
+           new Class[] { klass } ,
+            new ProfilingMethodInterceptor(clock, delegate, state)
+    );
+
+    return proxyInstance;
   }
 
   @Override
-  public void writeData(Path path) {
+  public void writeData(Path path) throws IOException {
     // TODO: Write the ProfilingState data to the given file path. If a file already exists at that
     //       path, the new data should be appended to the existing file.
-  }
+    Writer writer = null;
+    try {
+      writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+    } catch (IOException e) {
+      throw new IOException(e.getMessage());
+    }
+    finally {
+      if(writer != null)
+      {
+        try{writer.close();
+        }
+        catch(IOException ioException){
+          throw new IOException(ioException.getMessage());
+        }
+      }
+    }
+    }
 
   @Override
   public void writeData(Writer writer) throws IOException {
@@ -48,5 +79,17 @@ final class ProfilerImpl implements Profiler {
     writer.write(System.lineSeparator());
     state.write(writer);
     writer.write(System.lineSeparator());
+  }
+
+  private <T> boolean classContainsMethodWithProfiledAnnotation(Class<T> klass) {
+    boolean methodHasProfiledAnnotation = false;
+    Method[] methods = klass.getDeclaredMethods();
+    for (Method method : methods) {
+      if(method.isAnnotationPresent(Profiled.class)) {
+        methodHasProfiledAnnotation = true;
+        break;
+      }
+    }
+    return methodHasProfiledAnnotation;
   }
 }
