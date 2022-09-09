@@ -31,16 +31,12 @@ public final class ConfigurationLoader {
    */
   public CrawlerConfiguration load() throws IOException {
     // TODO: Fill in this method.
-    CrawlerConfiguration crawlerConfiguration;
-    Reader reader;
-    try {
-      reader = Files.newBufferedReader(path, StandardCharsets.UTF_8);
+    try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8))
+    {
+      CrawlerConfiguration crawlerConfiguration;
+      crawlerConfiguration = read(reader);
+      return crawlerConfiguration;
     }
-    catch (IOException exception){
-      throw new RuntimeException(exception);
-    }
-    crawlerConfiguration = read(reader);
-    return crawlerConfiguration;
   }
 
   /**
@@ -53,14 +49,15 @@ public final class ConfigurationLoader {
     // This is here to get rid of the unused variable warning.
     Objects.requireNonNull(reader);
     // TODO: Fill in this method
-    CrawlerConfiguration crawlerConfiguration;
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
     try {
+      ObjectMapper objectMapper = new ObjectMapper();
+      objectMapper.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+      CrawlerConfiguration crawlerConfiguration;
       crawlerConfiguration = objectMapper.readValue(reader, CrawlerConfiguration.class);
-    } catch (IOException e) {
+      return crawlerConfiguration;
+    }
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return crawlerConfiguration;
   }
 }

@@ -56,23 +56,22 @@ final class ProfilerImpl implements Profiler {
   public void writeData(Path path) throws IOException {
     // TODO: Write the ProfilingState data to the given file path. If a file already exists at that
     //       path, the new data should be appended to the existing file.
-    Writer writer = null;
-    try {
-      writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+    try (Writer writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
+      writeData(writer);
     }
-    catch (IOException exception) {
-      throw new IOException(exception.getMessage());
-    }
-    finally {
-        if(writer != null)
-        {
-          try{writer.close();
-          }
-          catch(IOException exception){
-            throw new IOException(exception.getMessage());
-          }
-        }
-      }
+//    catch (IOException exception) {
+//      throw new IOException(exception.getMessage());
+//    }
+//    finally {
+//        if(writer != null)
+//        {
+//          try{writer.close();
+//          }
+//          catch(IOException exception){
+//            throw new IOException(exception.getMessage());
+//          }
+//        }
+//      }
     }
 
   @Override
