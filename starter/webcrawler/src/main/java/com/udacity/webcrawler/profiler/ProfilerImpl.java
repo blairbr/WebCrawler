@@ -59,20 +59,7 @@ final class ProfilerImpl implements Profiler {
     try (Writer writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
       writeData(writer);
     }
-//    catch (IOException exception) {
-//      throw new IOException(exception.getMessage());
-//    }
-//    finally {
-//        if(writer != null)
-//        {
-//          try{writer.close();
-//          }
-//          catch(IOException exception){
-//            throw new IOException(exception.getMessage());
-//          }
-//        }
-//      }
-    }
+  }
 
   @Override
   public void writeData(Writer writer) throws IOException {
