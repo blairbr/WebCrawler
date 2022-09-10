@@ -35,8 +35,7 @@ public final class ConfigurationLoader {
     try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8))
     {
       CrawlerConfiguration crawlerConfiguration;
-      crawlerConfiguration = read(reader);
-      return crawlerConfiguration;
+      return read(reader);
     }
   }
 
@@ -53,9 +52,7 @@ public final class ConfigurationLoader {
     try {
       ObjectMapper objectMapper = new ObjectMapper();
       objectMapper.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
-      CrawlerConfiguration crawlerConfiguration;
-      crawlerConfiguration = objectMapper.readValue(reader, CrawlerConfiguration.class);
-      return crawlerConfiguration;
+      return objectMapper.readValue(reader, CrawlerConfiguration.class);
     }
     catch (IOException e) {
       throw new RuntimeException(e);

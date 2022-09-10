@@ -51,14 +51,14 @@ final class ParallelWebCrawler implements WebCrawler {
   }
 
   public class SearchAction extends RecursiveAction {
-    private String url;
-    private Clock clock;
-    private Instant deadline;
-    private int maxDepth;
-    private PageParserFactory parserFactory;
-    private List<Pattern> ignoredUrls;
-    private Map<String, Integer> wordCounts;
-    private Set<String> visitedUrls;
+    private final String url;
+    private final Clock clock;
+    private final Instant deadline;
+    private final int maxDepth;
+    private final PageParserFactory parserFactory;
+    private final List<Pattern> ignoredUrls;
+    private final Map<String, Integer> wordCounts;
+    private final Set<String> visitedUrls;
 
     public SearchAction(String url, Clock clock, Instant deadline, int maxDepth, PageParserFactory parserFactory, List<Pattern> ignoredUrls, Map<String, Integer> wordCounts, Set<String> visitedUrls)
     {
@@ -80,17 +80,18 @@ final class ParallelWebCrawler implements WebCrawler {
       }
     }
 
-    private List<String> getSublinks(String urlLink) {
+    private List<String> getSublinks(String url) {
       List<String> sublinks = new ArrayList<>();
       if (clock.instant().isAfter(deadline) || maxDepth == 0) {
         return sublinks;
       }
       for (Pattern pattern : ignoredUrls) {
-        if (pattern.matcher(urlLink).matches()) {
+        if (pattern.matcher(url).matches()) {
           return sublinks;
         }
       }
-      if (visitedUrls.contains(urlLink)) {
+      //thread safe
+      if (!visitedUrls.add(url)) {
         return sublinks;
       }
       visitedUrls.add(url);
